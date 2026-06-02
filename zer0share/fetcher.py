@@ -108,7 +108,7 @@ class TushareFetcher:
         ).apply(lambda x: x.date() if not pd.isnull(x) else None)
         return df[BASIC_COLS]
 
-    def fetch_daily_kline(self, trade_date: date) -> pd.DataFrame:
+    def fetch_daily_kline(self, trade_date: date, transfer_unit=False) -> pd.DataFrame:
         date_str = trade_date.strftime("%Y%m%d")
         logger.debug(f"拉取日线行情: {date_str}")
         df = self._pro.daily(trade_date=date_str, fields=",".join(DAILY_COLS))
@@ -117,6 +117,30 @@ class TushareFetcher:
         df["trade_date"] = pd.to_datetime(
             df["trade_date"], format="%Y%m%d"
         ).dt.date
+        if transfer_unit:
+            df["vol"] *= 100  # 转换为股数
+            df["amount"] *= 1000  # 转换为元
+        return df[DAILY_COLS]
+
+    def fetch_single_stock_period_kline(self, stock_code: str, start_date: date, end_date: date, transfer_unit=False) -> pd.DataFrame:
+        logger.debug(
+            f"拉取单只股票区间日线: {stock_code} "
+            f"{start_date.strftime('%Y%m%d')}~{end_date.strftime('%Y%m%d')}"
+        )
+        df = self._pro.daily(
+            ts_code=stock_code,
+            start_date=start_date.strftime("%Y%m%d"),
+            end_date=end_date.strftime("%Y%m%d"),
+            fields=",".join(DAILY_COLS)
+        )
+        if df is None or df.empty:
+            return pd.DataFrame(columns=DAILY_COLS)
+        df["trade_date"] = pd.to_datetime(
+            df["trade_date"], format="%Y%m%d"
+        ).dt.date
+        if transfer_unit:
+            df["vol"] *= 100  # 转换为股数
+            df["amount"] *= 1000  # 转换为元
         return df[DAILY_COLS]
 
     def fetch_adj_factor(self, trade_date: date) -> pd.DataFrame:

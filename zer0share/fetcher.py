@@ -258,7 +258,7 @@ class TushareFetcher:
         )
         return _format_trade_date(df, INDEX_WEIGHT_COLS)
 
-    @paginate()
+    @paginate(limit=None)
     def fetch_single_date_index_weight(self, trade_date: date, **kwargs) -> pd.DataFrame:
         """获取指定日期所有指数的成分权重。
 

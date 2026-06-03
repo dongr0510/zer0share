@@ -8,6 +8,7 @@ import functools
 import time
 
 import pandas as pd
+from loguru import logger
 
 
 def paginate(limit: int | None = 50000, interval: float = 0.05):
@@ -55,16 +56,16 @@ def paginate(limit: int | None = 50000, interval: float = 0.05):
 
                 df = func(*args, **kwargs)
                 if df is None or (isinstance(df, pd.DataFrame) and df.empty):
-                    print(f"[paginate] offset={offset}: 返回空，分页结束")
+                    logger.info(f"{func.__name__}: offset={offset} 返回空，分页结束，共 {offset} 条")
                     break
 
                 fetched = len(df)
                 offset += fetched
-                print(f"[paginate] offset={offset - fetched}, limit={limit} → 返回 {fetched} 条, next offset={offset}")
+                logger.debug(f"{func.__name__}: 获取第 {len(all_data) + 1} 页, "
+                             f"offset={offset - fetched} → {fetched} 条, 累计 {offset} 条")
 
-                # limit 为 None 时无法提前判断最后一页，只能靠返回空来停止
                 if limit is not None and fetched < limit:
-                    print(f"[paginate] fetched({fetched}) < limit({limit})，分页结束")
+                    logger.info(f"{func.__name__}: 分页完成（{fetched} < {limit}），共 {offset} 条")
                     break
 
                 time.sleep(interval)

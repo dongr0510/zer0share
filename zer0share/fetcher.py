@@ -259,7 +259,7 @@ class TushareFetcher:
         return _format_trade_date(df, INDEX_WEIGHT_COLS)
 
     @paginate()
-    def fetch_single_date_index_weight(self, trade_date: date) -> pd.DataFrame:
+    def fetch_single_date_index_weight(self, trade_date: date, **kwargs) -> pd.DataFrame:
         """获取指定日期所有指数的成分权重。
 
         不传 index_code，Tushare 返回当日全部指数的成分股列表，
@@ -267,6 +267,7 @@ class TushareFetcher:
 
         Args:
             trade_date: 交易日期。
+            **kwargs: 透传给 Tushare API（@paginate 装饰器注入 offset、limit）。
 
         Returns:
             DataFrame，含 index_code、con_code、trade_date、weight 列。
@@ -276,6 +277,7 @@ class TushareFetcher:
         df = self._pro.index_weight(
             trade_date=date_str,
             fields=",".join(INDEX_WEIGHT_COLS),
+            **kwargs,
         )
         return _format_trade_date(df, INDEX_WEIGHT_COLS)
 

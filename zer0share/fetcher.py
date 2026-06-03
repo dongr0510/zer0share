@@ -4,6 +4,8 @@ import time
 from datetime import date
 from loguru import logger
 
+from zer0share.utils import paginate
+
 
 BASIC_COLS = [
     "ts_code",
@@ -252,6 +254,27 @@ class TushareFetcher:
             index_code=index_code,
             start_date=start_date.strftime("%Y%m%d"),
             end_date=end_date.strftime("%Y%m%d"),
+            fields=",".join(INDEX_WEIGHT_COLS),
+        )
+        return _format_trade_date(df, INDEX_WEIGHT_COLS)
+
+    @paginate()
+    def fetch_single_date_index_weight(self, trade_date: date) -> pd.DataFrame:
+        """获取指定日期所有指数的成分权重。
+
+        不传 index_code，Tushare 返回当日全部指数的成分股列表，
+        数据量可能超过单次返回上限，通过 @paginate 自动分页。
+
+        Args:
+            trade_date: 交易日期。
+
+        Returns:
+            DataFrame，含 index_code、con_code、trade_date、weight 列。
+        """
+        date_str = trade_date.strftime("%Y%m%d")
+        logger.debug(f"拉取指数成分(全量): {date_str}")
+        df = self._pro.index_weight(
+            trade_date=date_str,
             fields=",".join(INDEX_WEIGHT_COLS),
         )
         return _format_trade_date(df, INDEX_WEIGHT_COLS)
